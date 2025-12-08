@@ -1,0 +1,13 @@
+replicaCount: 2
+
+image:
+  tag: "prod"
+
+ingress:
+  enabled: true
+  hosts:
+    - host: app.seanxtopher.com
+      paths:
+        - path: /
+          pathType: Prefix
+

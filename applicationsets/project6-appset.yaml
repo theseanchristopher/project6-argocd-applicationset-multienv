@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: project6-multienv-appset
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: dev
+            namespace: project6-dev
+            valuesFile: environments/dev/values.yaml
+          - name: pre
+            namespace: project6-pre
+            valuesFile: environments/pre/values.yaml
+          - name: prod
+            namespace: project6-prod
+            valuesFile: environments/prod/values.yaml
+  template:
+    metadata:
+      name: project6-{{name}}
+      labels:
+        project: "project6"
+        environment: "{{name}}"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/theseanchristopher/project4-helm-argo-gitops
+        targetRevision: main
+        path: charts/app
+        helm:
+          valueFiles:
+            - "{{valuesFile}}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{namespace}}"
+      syncPolicy:
+        {{- if eq .name "dev" }}
+        automated:
+          prune: true
+          selfHeal: true
+        {{- end }}
+        syncOptions:
+          - CreateNamespace=true
+
